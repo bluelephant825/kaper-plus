@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { App as KaperApp } from './ui/App';
 import { kaperEditorExtension } from './editor-extension';
 import { FileLabelRewriter } from './file-label-rewriter';
-import { ensureKaperFrontmatter, hasKaperFrontmatter, extractTagsFromKaperBlock } from './frontmatter';
+import { ensureKaperFrontmatter, hasKaperFrontmatter, syncFileTags } from './frontmatter';
 import { parseKaperYaml, serializeKaperYaml } from './parser/recipe-parser';
 import { RecipeModel } from './parser/types';
 
@@ -183,50 +183,17 @@ export default class KaperPlugin extends Plugin {
     try {
       const cache = this.app.metadataCache.getFileCache(file);
       const kaperValue = cache?.frontmatter?.kaper;
-      if (kaperValue !== true && kaperValue !== 'true') {
-        return;
-      }
+      const hasKaperFrontmatter = kaperValue !== undefined && kaperValue !== null && kaperValue !== '';
 
       const content = await this.app.vault.read(file);
       
-      const kaperTags = extractTagsFromKaperBlock(content);
-      
-      await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        const currentTags = frontmatter.tags;
-        const existingTags = Array.isArray(currentTags)
-          ? currentTags.filter((t): t is string => typeof t === 'string')
-          : typeof currentTags === 'string'
-            ? [currentTags]
-            : [];
+      if (hasKaperFrontmatter || content.includes('```kaper')) {
+        const newContent = syncFileTags(content);
         
-        // Compare accurately by stripping '#' and lowering case
-        const normalize = (t: string) => String(t).trim().toLowerCase().replace(/^#+/, '');
-        
-        const existingSet = new Set(existingTags.map(normalize));
-        
-        let needsUpdate = false;
-        
-        // Check if any kaper tags are missing from frontmatter
-        for (const tag of kaperTags) {
-          if (!existingSet.has(normalize(tag))) {
-            needsUpdate = true;
-            break;
-          }
+        if (newContent !== content) {
+          await this.app.vault.modify(file, newContent);
         }
-
-        // If no update needed, return early
-        if (!needsUpdate) return;
-        
-        const merged = new Set<string>();
-        // Keep all existing tags (even manual ones)
-        existingTags.forEach(t => merged.add(String(t).trim().replace(/^#+/, '')));
-        // Add all kaper tags
-        kaperTags.forEach(t => merged.add(t));
-        
-        if (merged.size > 0) {
-          frontmatter.tags = Array.from(merged);
-        }
-      });
+      }
     } catch (err) {
       console.error('Failed to sync tags from Kaper block', err);
     }

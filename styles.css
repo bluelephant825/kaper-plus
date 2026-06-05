@@ -871,3 +871,16 @@ img.kaper-preview__step-image {
   display: flex;
   gap: var(--size-4-2);
 }
+
+/* ── Hidden tags for indexing ────────────────────────────────────────── */
+
+/* Hide in Reading View / Preview */
+p:has(> .kaper-tags) {
+  display: none !important;
+}
+
+/* Hide in Live Preview / Editor */
+.cm-line:has(.kaper-tags) {
+  display: none !important;
+}
+

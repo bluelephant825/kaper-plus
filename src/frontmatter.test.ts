@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   ensureKaperFrontmatter,
   hasKaperFrontmatter,
-  syncFrontmatterTags,
+  syncHiddenTags,
+  cleanFrontmatterTags,
 } from './frontmatter';
 
 describe('hasKaperFrontmatter', () => {
@@ -32,42 +33,58 @@ describe('hasKaperFrontmatter', () => {
   });
 });
 
-describe('syncFrontmatterTags', () => {
-  it('writes tags to frontmatter when provided', () => {
+describe('syncHiddenTags', () => {
+  it('writes tags to hidden block when tags are provided', () => {
     const input = '---\nkaper: true\n---\n\n```kaper\ntitle: x\n```';
-    const result = syncFrontmatterTags(input, ['dinner', 'quick']);
-    expect(result).toContain('tags:\n  - dinner\n  - quick');
-    expect(result).toContain('kaper: true');
+    const result = syncHiddenTags(input, ['dinner', 'quick']);
+    expect(result).toContain('<span class="kaper-tags"></span> #dinner #quick');
   });
 
-  it('merges with existing frontmatter tags', () => {
-    const input = '---\nkaper: true\ntags:\n  - existing\n---\n\nbody';
-    const result = syncFrontmatterTags(input, ['dinner']);
-    expect(result).toContain('tags:\n  - existing\n  - dinner');
+  it('replaces existing hidden tags', () => {
+    const input = '```kaper\ntitle: x\n```\n\n<span class="kaper-tags"></span> #old';
+    const result = syncHiddenTags(input, ['new']);
+    expect(result).toContain('<span class="kaper-tags"></span> #new');
+    expect(result).not.toContain('#old');
   });
 
-  it('strips leading hashes when syncing tags', () => {
-    const input = '---\nkaper: true\n---\n\nbody';
-    const result = syncFrontmatterTags(input, ['#dinner', '##quick']);
-    expect(result).toContain('tags:\n  - dinner\n  - quick');
+  it('removes the hidden tag block when tags are empty', () => {
+    const input = '```kaper\ntitle: x\n```\n\n<span class="kaper-tags"></span> #old';
+    const result = syncHiddenTags(input, []);
+    expect(result).not.toContain('<span class="kaper-tags"></span>');
   });
 
-  it('deduplicates merged tags case-insensitively', () => {
-    const input = '---\nkaper: true\ntags:\n  - Dinner\n---\n\nbody';
-    const result = syncFrontmatterTags(input, ['dinner', 'quick']);
-    expect(result).toContain('tags:\n  - Dinner\n  - quick');
+  it('strips leading hashes and normalizes spaces', () => {
+    const input = 'body';
+    const result = syncHiddenTags(input, ['#dinner', '  ##quick  ']);
+    expect(result).toContain('<span class="kaper-tags"></span> #dinner #quick');
   });
 
-  it('keeps existing tags when provided tags are empty', () => {
+  it('deduplicates case-insensitively but preserves first seen casing', () => {
+    const input = 'body';
+    const result = syncHiddenTags(input, ['Dinner', 'dinner', 'quick']);
+    expect(result).toContain('<span class="kaper-tags"></span> #Dinner #quick');
+  });
+});
+
+describe('cleanFrontmatterTags', () => {
+  it('removes matching tags from frontmatter', () => {
+    const input = '---\nkaper: true\ntags:\n  - dinner\n  - lunch\n---\n\nbody';
+    const result = cleanFrontmatterTags(input, ['dinner']);
+    expect(result).toContain('tags:\n  - lunch');
+    expect(result).not.toContain('dinner');
+  });
+
+  it('removes the tags key completely when all tags are removed', () => {
     const input = '---\nkaper: true\ntags:\n  - dinner\n---\n\nbody';
-    const result = syncFrontmatterTags(input, []);
-    expect(result).toContain('tags:\n  - dinner');
+    const result = cleanFrontmatterTags(input, ['dinner']);
+    expect(result).not.toContain('tags:');
     expect(result).toContain('kaper: true');
   });
 
-  it('returns original content when no frontmatter exists', () => {
-    const input = 'body\n\n```kaper\ntitle: x\n```';
-    expect(syncFrontmatterTags(input, ['dinner'])).toBe(input);
+  it('handles case-insensitive matching', () => {
+    const input = '---\nkaper: true\ntags:\n  - Dinner\n---\n\nbody';
+    const result = cleanFrontmatterTags(input, ['dinner']);
+    expect(result).not.toContain('tags:');
   });
 });
 

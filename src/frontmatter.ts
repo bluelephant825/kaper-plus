@@ -46,54 +46,78 @@ export function extractTagsFromKaperBlock(content: string): string[] {
   return Array.from(new Set(allTags));
 }
 
-export function syncFileTags(content: string): string {
-  const allTags = extractTagsFromKaperBlock(content);
-  return syncFrontmatterTags(content, allTags);
+export const KAPER_TAGS_REGEX = /<span class="kaper-tags"><\/span>.*/i;
+
+export function syncHiddenTags(content: string, tags: string[]): string {
+  const seen = new Set<string>();
+  const normalizedTags: string[] = [];
+  for (const tag of tags) {
+    const clean = tag.trim().replace(/^#+/, '');
+    if (!clean) continue;
+    const lower = clean.toLowerCase();
+    if (seen.has(lower)) continue;
+    seen.add(lower);
+    normalizedTags.push(`#${clean}`);
+  }
+
+  const hasTags = normalizedTags.length > 0;
+  const match = content.match(KAPER_TAGS_REGEX);
+
+  if (match) {
+    if (!hasTags) {
+      const beforeMatch = content.slice(0, match.index);
+      const afterMatch = content.slice(match.index! + match[0].length);
+      const cleaned = beforeMatch + afterMatch;
+      return cleaned.replace(/\n{3,}/g, '\n\n');
+    }
+    const newBlock = `<span class="kaper-tags"></span> ${normalizedTags.join(' ')}`;
+    return content.replace(KAPER_TAGS_REGEX, newBlock);
+  } else {
+    if (!hasTags) {
+      return content;
+    }
+    const newBlock = `<span class="kaper-tags"></span> ${normalizedTags.join(' ')}`;
+    const separator = content.endsWith('\n\n') ? '' : content.endsWith('\n') ? '\n' : '\n\n';
+    return `${content}${separator}${newBlock}\n`;
+  }
 }
-export function syncFrontmatterTags(content: string, tags: string[] | undefined): string {
+
+export function cleanFrontmatterTags(content: string, tagsToRemove: string[]): string {
   const match = content.match(FRONTMATTER_REGEX);
   if (!match || match.index === undefined) return content;
 
-  let frontmatter = loadYaml(match[1]);
-  if (!frontmatter || typeof frontmatter !== 'object' || Array.isArray(frontmatter)) {
-    frontmatter = {};
-  }
-
-  const normalizeTag = (tag: string) => tag.trim().replace(/^#+/, '');
-  const normalizedRecipeTags = (tags ?? []).map(normalizeTag).filter(Boolean);
-  const data = { ...(frontmatter as Record<string, unknown>) };
-  const rawExistingTags = data.tags;
-  const existingTags = Array.isArray(rawExistingTags)
-    ? rawExistingTags.filter((tag): tag is string => typeof tag === 'string').map(normalizeTag)
-    : typeof rawExistingTags === 'string'
-      ? [normalizeTag(rawExistingTags)]
-      : [];
-
-  let needsUpdate = false;
-  const existingSet = new Set(existingTags.map(t => t.toLowerCase()));
-  for (const tag of normalizedRecipeTags) {
-    if (!existingSet.has(tag.toLowerCase())) {
-      needsUpdate = true;
-      break;
-    }
-  }
-
-  // If we don't need to add any new tags, and there were no tags to remove (we never remove existing tags), then no update is needed.
-  if (!needsUpdate) {
+  let frontmatter: any;
+  try {
+    frontmatter = loadYaml(match[1]);
+  } catch (e) {
     return content;
   }
 
-  const mergedTags: string[] = [];
-  const seen = new Set<string>();
-  for (const tag of [...existingTags, ...normalizedRecipeTags]) {
-    const normalized = tag.toLowerCase();
-    if (!tag || seen.has(normalized)) continue;
-    seen.add(normalized);
-    mergedTags.push(tag);
+  if (!frontmatter || typeof frontmatter !== 'object' || Array.isArray(frontmatter)) {
+    return content;
   }
 
-  if (mergedTags.length > 0) {
-    data.tags = mergedTags;
+  const normalizeTag = (tag: string) => tag.trim().toLowerCase().replace(/^#+/, '');
+  const toRemoveSet = new Set(tagsToRemove.map(normalizeTag));
+
+  const data = { ...(frontmatter as Record<string, unknown>) };
+  const rawExistingTags = data.tags;
+  if (!rawExistingTags) return content;
+
+  const existingTags = Array.isArray(rawExistingTags)
+    ? rawExistingTags.filter((tag): tag is string => typeof tag === 'string')
+    : typeof rawExistingTags === 'string'
+      ? [rawExistingTags]
+      : [];
+
+  const cleanedTags = existingTags.filter(tag => !toRemoveSet.has(normalizeTag(tag)));
+
+  if (cleanedTags.length === existingTags.length) {
+    return content;
+  }
+
+  if (cleanedTags.length > 0) {
+    data.tags = cleanedTags;
   } else {
     delete data.tags;
   }
@@ -103,3 +127,11 @@ export function syncFrontmatterTags(content: string, tags: string[] | undefined)
   const end = start + match[0].length;
   return `${content.slice(0, start)}---\n${serialized}\n---\n${content.slice(end)}`;
 }
+
+export function syncFileTags(content: string): string {
+  const kaperTags = extractTagsFromKaperBlock(content);
+  let updatedContent = syncHiddenTags(content, kaperTags);
+  updatedContent = cleanFrontmatterTags(updatedContent, kaperTags);
+  return updatedContent;
+}
+
