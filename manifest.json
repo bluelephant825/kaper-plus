@@ -1,7 +1,7 @@
 {
   "id": "kaper-plus",
   "name": "Kaper Plus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.4.0",
   "description": "Edit and preview Kaper recipes as structured blocks.",
   "author": "neex",

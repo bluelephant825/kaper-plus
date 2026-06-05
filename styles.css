@@ -51,12 +51,12 @@
   border-bottom-color: var(--interactive-accent);
 }
 
-.kaper-cook-mode-button {
+button.kaper-cook-mode-button {
   margin-left: auto;
   padding: var(--size-2-2) var(--size-4-2);
-  background: none;
+  background: navy !important;
   border: none;
-  color: var(--text-accent);
+  color: cyan !important;
   cursor: pointer;
   font-size: 13px;
 }
@@ -268,7 +268,7 @@
 }
 
 /* Center a standalone image horizontally */
-img.kaper-preview__cover, 
+img.kaper-preview__cover,
 img.kaper-preview__step-image {
   display: block;
   margin-left: auto;
@@ -435,7 +435,7 @@ img.kaper-preview__step-image {
   min-width: 0;
 }
 
-.kaper-form__field > label {
+.kaper-form__field>label {
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);
@@ -486,12 +486,33 @@ img.kaper-preview__step-image {
   background-position: right 10px center;
 }
 
-.kaper-form__input--narrow { max-width: 120px; flex: none; }
-.kaper-form__input--amount { width: 72px; flex: none; }
-.kaper-form__input--unit { width: 80px; flex: none; }
-.kaper-form__input--name { flex: 1; }
-.kaper-form__input--sub { width: 100px; flex: none; }
-.kaper-form__input--step-title { flex: 1; }
+.kaper-form__input--narrow {
+  max-width: 120px;
+  flex: none;
+}
+
+.kaper-form__input--amount {
+  width: 72px;
+  flex: none;
+}
+
+.kaper-form__input--unit {
+  width: 80px;
+  flex: none;
+}
+
+.kaper-form__input--name {
+  flex: 1;
+}
+
+.kaper-form__input--sub {
+  width: 100px;
+  flex: none;
+}
+
+.kaper-form__input--step-title {
+  flex: 1;
+}
 
 /* ── Time input (hours / minutes) ──────────────────────────────────────── */
 
@@ -517,13 +538,18 @@ img.kaper-preview__step-image {
   box-sizing: border-box;
 }
 
-.kaper-time-input__field::placeholder { color: var(--text-faint); }
+.kaper-time-input__field::placeholder {
+  color: var(--text-faint);
+}
 
 .kaper-time-input__field:focus {
   border-color: var(--interactive-accent);
 }
 
-.kaper-time-input__field:disabled { opacity: 0.5; cursor: default; }
+.kaper-time-input__field:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 .kaper-time-input__unit {
   font-size: 11px;
@@ -613,9 +639,14 @@ img.kaper-preview__step-image {
   color: var(--text-normal);
 }
 
-.kaper-tag-input__field::placeholder { color: var(--text-faint); }
+.kaper-tag-input__field::placeholder {
+  color: var(--text-faint);
+}
 
-.kaper-tag-input__field:disabled { opacity: 0.5; cursor: default; }
+.kaper-tag-input__field:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 .kaper-tag-input__dropdown {
   position: absolute;
@@ -884,3 +915,141 @@ p:has(> .kaper-tags) {
   display: none !important;
 }
 
+/* ── Core Slides Presentation Styles ─────────────────────────────────── */
+
+.reveal h2 {
+  font-size: 1.3em !important;
+  margin-bottom: 20px !important;
+  text-transform: none !important;
+}
+
+.reveal h3 {
+  font-size: 1em !important;
+  margin-top: 10px !important;
+  margin-bottom: 5px !important;
+  color: var(--text-accent) !important;
+  text-align: left !important;
+  text-transform: none !important;
+}
+
+.reveal p,
+.reveal li {
+  font-size: 0.8em !important;
+  line-height: 1.4 !important;
+}
+
+.reveal ul,
+.reveal ol {
+  margin-top: 5px !important;
+  margin-bottom: 10px !important;
+}
+
+.reveal blockquote {
+  font-size: 0.75em !important;
+  background: var(--background-secondary) !important;
+  border-left: 4px solid var(--interactive-accent) !important;
+  padding: 8px 12px !important;
+  margin: 10px 0 !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+/* Rounded corners and size limits on images inside slideshows */
+.reveal img {
+  border-radius: 12px !important;
+  max-height: 250px !important;
+  width: auto !important;
+  object-fit: cover !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  margin: 15px auto !important;
+  display: block !important;
+}
+
+/* Ingredients Layouts */
+.kaper-slides-ingredients {
+  font-size: 0.9em !important;
+  text-align: left !important;
+}
+
+.kaper-slides-ingredients ul {
+  margin: 0 !important;
+  padding-left: 20px !important;
+}
+
+/* 2-Column List Layout (Single group with > 4 items) */
+.kaper-slides-ingredients-2col-list {
+  width: 90% !important;
+  margin: 0 auto !important;
+  font-size: 0.9em !important;
+  text-align: left !important;
+}
+
+.kaper-slides-ingredients-2col-list ul {
+  width: 100% !important;
+  margin: 0 !important;
+  padding-left: 20px !important;
+  column-count: 2 !important;
+  column-gap: 11.11% !important;
+}
+
+.kaper-slides-ingredients-2col-list li {
+  break-inside: avoid !important;
+}
+
+/* 2-Column Groups Layout (Multiple groups — explicit flexbox columns) */
+.kaper-slides-ingredients-2col-groups {
+  display: flex !important;
+  gap: 10% !important;
+  width: 90% !important;
+  margin: 0 auto !important;
+  font-size: 0.9em !important;
+  text-align: left !important;
+}
+
+.kaper-slides-ingredients-2col-groups .kaper-col {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+}
+
+.kaper-slides-ingredients-2col-groups h3 {
+  margin-top: 0 !important;
+  margin-bottom: 10px !important;
+}
+
+.kaper-slides-ingredients-2col-groups ul {
+  margin: 0 0 20px 0 !important;
+  padding-left: 20px !important;
+}
+
+/* Intro Slide Styles */
+.kaper-slides-intro {
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.kaper-slides-intro h2 {
+  margin-top: 15px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Make the cover image larger on the intro slide */
+.kaper-slides-intro img {
+  max-height: 420px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  margin: 10px auto !important;
+}
+
+/* Center the metadata line below the cover image and display on a single line */
+.kaper-slides-intro-meta {
+  margin-top: 15px !important;
+  margin-bottom: 0 !important;
+  font-size: 0.85em !important;
+  color: var(--text-muted) !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  display: block !important;
+  width: 100% !important;
+}

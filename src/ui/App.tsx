@@ -30,7 +30,7 @@ export function App({ filePath, recipe, parseError, resolveImage, onChange, onCo
     <div className="kaper-view-content">
       <div className="kaper-tabs">
         <button className="kaper-cook-mode-button" onClick={onCookMode}>
-          Cook mode
+          Start cooking
         </button>
       </div>
 

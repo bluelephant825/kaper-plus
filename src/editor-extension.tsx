@@ -126,9 +126,13 @@ class KaperWidget extends WidgetType {
         resolveImage={resolveImage}
         mode="form"
         onChange={(recipe) => this.handleEdit(recipe, view)}
-        onCookMode={() =>
-          window.open('https://kaper.me?from=obsidian', '_blank', 'noopener,noreferrer')
-        }
+        onCookMode={() => {
+          const fileInfo = view.state.field(editorInfoField, false);
+          const app = fileInfo?.app;
+          if (app) {
+            (app as any).commands.executeCommandById('kaper-plus:start-cooking');
+          }
+        }}
       />,
     );
   }
